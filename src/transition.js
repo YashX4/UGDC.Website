@@ -42,12 +42,17 @@ export const wipeBlock = function (on) { wipeCv.style.pointerEvents = on ? 'auto
    loaderRun(ready, min)  counts up until `ready` resolves and `min` ms have passed
    loaderReveal()  mark fades, the blue turns into pixel blocks that dissolve */
 var titleEl = $('.loader__mark .t');
-/* the small sponsor line at the foot of a loader: [ Sponsored by ] A / B / C */
+/* the sponsor strip at the foot of a loader: [ Sponsored by ] and a row of white logos (or names when there is no logo) */
 export const showSponsors = function (el, list) {
   el.hidden = !(list && list.length); el.textContent = '';
   if (el.hidden) return;
-  var lead = document.createElement('span'); lead.textContent = '[ Sponsored by ] ';
-  el.append(lead, list.join(' / '));
+  var lead = document.createElement('span'); lead.className = 'loader__sponsors-cap'; lead.textContent = '[ Sponsored by ]';
+  var row = document.createElement('span'); row.className = 'loader__sponsors-row';
+  list.forEach(function (s) {
+    if (s.logo) { var im = new Image(); im.src = s.logo; im.alt = s.name; row.appendChild(im); }
+    else { var t = document.createElement('span'); t.textContent = s.name; row.appendChild(t); }
+  });
+  el.append(lead, row);
 };
 var sponsorsEl = $('#loaderSponsors');
 export const loaderShow = function (title, sponsors) {
