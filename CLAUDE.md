@@ -11,6 +11,7 @@ Project: UMass Game Dev Club website (proof of concept turned into the real site
 - No boxes around text on the 3D scenes. No instruction text. The table screen has no nav, only the corner plus.
 - Copy: casual and direct, short sentences, NO dashes of any kind (no em dash, en dash, or hyphen used as punctuation or in compound words). Rewrite with separate words. Public copy must keep: not for kids, under 16 needs an accompanying adult.
 - Content lives in `js/data.js`, never hard coded in views.
+- Jam winners: mark the game `winner: true` in `src/data.js`. A winner shows the pixel crown in place of the heart, and winners always come first on every cartridge table (the table view sorts them to the front).
 - Only one WebGL context alive at a time. Engines must be disposed on view unmount.
 - The site must be served over http (not `file://`).
 

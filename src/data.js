@@ -29,7 +29,8 @@ export const ASSETS = {
    games[]: title, team, desc, credits [{name, role, social}], link (itch.io url, empty = none yet),
             social is optional: any profile url (Instagram, LinkedIn, itch, site). With it the name is a link.
             cover (square image path/url, centre cropped onto the cartridge label, empty = placeholder),
-            color (cartridge plastic hex, optional, falls back to a rotating Klein palette)
+            color (cartridge plastic hex, optional, falls back to a rotating Klein palette),
+            winner: true puts the pixel crown next to the title in place of the heart, and winners always come first on the table
    Credits come from each itch.io page. When a page names one creator and no roles, that person gets SOLO. */
 var SOLO = 'Art, code, sound';
 function solo(name) { return [{ name: name, role: SOLO }]; }
@@ -53,7 +54,7 @@ export const JAMS = {
       { name: 'Bueno y Sano', logo: 'assets/sponsors/bueno-y-sano.png' }
     ] },
   'spring-2026': { title: 'Spring Game Jam 2026', games: [
-    { title: 'Drill Game', team: 'Antidissmist', desc: 'Drill around, smack some things and maybe fight some robots.', credits: solo('Antidissmist'), link: 'https://antidissmist.itch.io/drill-game?secret=WVlC1mgEU6aHDWjPDkT65HizuE', cover: 'assets/covers/drill-game.jpg', color: '' },
+    { title: 'Drill Game', winner: true, team: 'Antidissmist', desc: 'Drill around, smack some things and maybe fight some robots.', credits: solo('Antidissmist'), link: 'https://antidissmist.itch.io/drill-game?secret=WVlC1mgEU6aHDWjPDkT65HizuE', cover: 'assets/covers/drill-game.jpg', color: '' },
     { title: 'Purrfectly Unbuilt', team: 'delayyy', desc: 'Play as a cat and destroy the house items before your owner returns.', credits: solo('delayyy'), link: 'https://delayyy.itch.io/purrfectly-unbuilt', cover: 'assets/covers/purrfectly-unbuilt.jpg', color: '' },
     { title: 'Nazi Excape Story', team: 'YashX4', desc: 'Bark, flip the lights and find the torch to reach the next level.', credits: solo('YashX4'), link: 'https://yashx4.itch.io/nazi-excape-story', cover: 'assets/covers/nazi-excape.jpg', color: '' },
     { title: 'Opposite Day', team: 'MelliMe', desc: 'Chat with your stressed out friends in a game that may or may not hold together.', credits: solo('MelliMe'), link: 'https://mellime.itch.io/opposite-day', cover: 'assets/covers/opposite-day.jpg', color: '' },

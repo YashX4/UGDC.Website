@@ -13,7 +13,7 @@ var el = $('#view-table'), stage = $('#tableStage'), loadEl = $('#tableLoading')
 var info = $('#tInfo'), swapEl = $('#tSwap'), titleCv = $('#tTitle'), h1 = $('#tH1'), countEl = $('#tCount'),
     descEl = $('#tDesc'), creditsEl = $('#tCredits'),
     progText = $('#tProgText'), progBar = $('#tProgBar'),
-    tload = $('#tLoad'), tLoadTitle = $('#tLoadTitle'), tPct = $('#tPct'), tBar = $('#tBar'), tLoadNote = $('#tLoadNote'), tLoadLink = $('#tLoadLink'), tLoadCredits = $('#tLoadCredits'), tSponsors = $('#tSponsors'), tLoadBack = $('#tLoadBack');
+    tload = $('#tLoad'), tLoadTitle = $('#tLoadTitle'), tPct = $('#tPct'), tBar = $('#tBar'), tLoadNote = $('#tLoadNote'), tLoadLink = $('#tLoadLink'), tLoadCredits = $('#tLoadCredits'), tHeart = $('#tHeart'), tCrown = $('#tCrown'), tSponsors = $('#tSponsors'), tLoadBack = $('#tLoadBack');
 var jam = null, games = [], engine = null, cv = null, alive = false, offs = [], navT = 0, hoverT = 0;
 /* last: the last hovered cartridge. The info stays on it after the pointer leaves, so its credit links can be clicked. */
 var S = { hovered: -1, last: -1, center: 3, opened: -1, shown: -1 };
@@ -41,7 +41,9 @@ function render() {
   progBar.style.width = Math.round((s.center + 1) / n * 100) + '%';
   if (shown !== s.shown) {
     s.shown = shown;
-    h1.textContent = g.title; descEl.textContent = g.desc;
+    /* a jam winner wears the crown in place of the heart */
+    tHeart.toggleAttribute('hidden', !!g.winner); tCrown.toggleAttribute('hidden', !g.winner); /* svg has no .hidden property */
+    h1.textContent = g.title + (g.winner ? ', jam winner' : ''); descEl.textContent = g.desc;
     fillCredits(creditsEl, g.credits);
     paintTitle(); retrigger(swapEl, 'swap');
   }
@@ -101,7 +103,8 @@ function onKey(e) {
 
 export const TableView = {
   mount: function (route) {
-    jam = JAMS[route.jam]; games = jam.games; alive = true; offs = [];
+    /* winners always lead the row, the rest keep their order */
+    jam = JAMS[route.jam]; games = jam.games.filter(function (g) { return g.winner; }).concat(jam.games.filter(function (g) { return !g.winner; })); alive = true; offs = [];
     el.hidden = false; loadEl.hidden = false; tload.hidden = true; root.classList.toggle('tloading', false); menu(false);
     $('#navBack').setAttribute('href', route.token === 'games' ? '#home' : '#events');
     S = { hovered: -1, last: -1, center: Math.min(3, games.length - 1), opened: -1, shown: -1 };
