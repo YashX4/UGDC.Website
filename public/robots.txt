@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://umass-game-dev.vercel.app/sitemap.xml

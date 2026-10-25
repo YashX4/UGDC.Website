@@ -134,7 +134,7 @@ test('open a cartridge: zoom, wipe, blue loader', async ({ page, isMobile }) => 
   await shot(page, 'table-loading');
   await page.click('#tLoadBack');
   await waitHidden(page, '#tLoad');
-  await page.waitForFunction(() => /ON THE TABLE|PREVIEWING/.test(document.getElementById('tStatus').textContent), null, { timeout: 15000 });
+  await page.waitForFunction(() => getComputedStyle(document.getElementById('wipe')).pointerEvents === 'none', null, { timeout: 15000 });
 });
 
 test('flow: menu to events, poster to table, plus back to the wall, home', async ({ page, isMobile }) => {

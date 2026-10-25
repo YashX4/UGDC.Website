@@ -27,6 +27,12 @@ function parse(token) {
   if (JAMS[token]) return { v: 'table', token: token, jam: token };
   return { v: 'home', token: '' };
 }
+/* the tab title per page; home keeps the full title from index.html */
+var HOME_TITLE = document.title;
+function setTitle(route) {
+  var name = { about: 'About', resources: 'Resources', wall: 'Events' }[route.v] || (route.jam ? (route.jam === 'games' ? 'Games' : JAMS[route.jam].title) : '');
+  document.title = name ? name + ' | UMass Game Dev' : HOME_TITLE;
+}
 function push(route) {
   try { if ((location.hash || '').replace('#', '') !== route.token) history.pushState({ t: route.token }, '', route.token ? '#' + route.token : location.pathname + location.search); } catch (e) {}
 }
@@ -34,7 +40,7 @@ function push(route) {
 async function swap(route) {
   if (cur) cur.unmount();
   cur = views[route.v]; curRoute = route;
-  root.dataset.view = route.v;
+  root.dataset.view = route.v; setTitle(route);
   nav.setCurrent(route.v === 'home' || route.v === 'about' || route.v === 'resources' ? route.v : route.token === 'games' ? 'games' : 'events');
   await Promise.race([cur.mount(route, ctx), sleep(8000)]);
 }

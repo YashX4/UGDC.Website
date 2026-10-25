@@ -11,11 +11,12 @@ import { $, cap, reduce, retrigger, root } from './util.js';
 
 var el = $('#view-table'), stage = $('#tableStage'), loadEl = $('#tableLoading');
 var info = $('#tInfo'), swapEl = $('#tSwap'), titleCv = $('#tTitle'), h1 = $('#tH1'), countEl = $('#tCount'),
-    statusEl = $('#tStatus'), descEl = $('#tDesc'), creditsEl = $('#tCredits'),
+    descEl = $('#tDesc'), creditsEl = $('#tCredits'),
     progText = $('#tProgText'), progBar = $('#tProgBar'),
-    tload = $('#tLoad'), tLoadTitle = $('#tLoadTitle'), tPct = $('#tPct'), tBar = $('#tBar'), tLoadNote = $('#tLoadNote'), tLoadLink = $('#tLoadLink'), tLoadBack = $('#tLoadBack');
-var jam = null, games = [], engine = null, cv = null, alive = false, offs = [], navT = 0;
-var S = { hovered: -1, center: 3, opened: -1, shown: -1 };
+    tload = $('#tLoad'), tLoadTitle = $('#tLoadTitle'), tPct = $('#tPct'), tBar = $('#tBar'), tLoadNote = $('#tLoadNote'), tLoadLink = $('#tLoadLink'), tLoadCredits = $('#tLoadCredits'), tLoadBack = $('#tLoadBack');
+var jam = null, games = [], engine = null, cv = null, alive = false, offs = [], navT = 0, hoverT = 0;
+/* last: the last hovered cartridge. The info stays on it after the pointer leaves, so its credit links can be clicked. */
+var S = { hovered: -1, last: -1, center: 3, opened: -1, shown: -1 };
 
 function listen(t, type, fn, opt) { t.addEventListener(type, fn, opt); offs.push(function () { t.removeEventListener(type, fn, opt); }); }
 function pad(v) { return (v < 10 ? '0' : '') + v; }
@@ -24,20 +25,24 @@ function paintTitle() {
   var g = games[S.shown]; if (!g) return;
   rasterInto(titleCv, g.title, innerWidth >= 1100 ? 60 : 40, inkOf(titleCv), Math.max(200, Math.min(1100, stage.clientWidth - 48) - 60));
 }
+/* credits: NAME / ROLE. A social link is optional: with one the name opens it, without one it is plain text */
+function fillCredits(box, credits) {
+  box.innerHTML = '';
+  (credits || []).forEach(function (c) {
+    var sp = document.createElement('span'); sp.className = 'capsub';
+    var nm = document.createElement(c.social ? 'a' : 'span'); nm.className = 'cr-name'; nm.textContent = c.name;
+    if (c.social) { nm.href = c.social; nm.target = '_blank'; nm.rel = 'noopener'; nm.setAttribute('aria-label', c.name + ', opens their page'); }
+    sp.appendChild(nm); sp.appendChild(document.createTextNode(' / ' + c.role)); box.appendChild(sp);
+  });
+}
 function render() {
-  var s = S, shown = s.opened >= 0 ? s.opened : (s.hovered >= 0 ? s.hovered : s.center), g = games[shown], n = games.length;
-  statusEl.textContent = cap(s.opened >= 0 ? 'Inserting' : (s.hovered >= 0 ? 'Previewing' : 'On the table')) + ' ' + cap('by ' + g.team);
+  var s = S, shown = s.opened >= 0 ? s.opened : (s.last >= 0 ? s.last : s.center), g = games[shown], n = games.length;
   progText.textContent = pad(s.center + 1) + ' / ' + pad(n);
   progBar.style.width = Math.round((s.center + 1) / n * 100) + '%';
   if (shown !== s.shown) {
     s.shown = shown;
     h1.textContent = g.title; descEl.textContent = g.desc;
-    creditsEl.innerHTML = '';
-    (g.credits || []).forEach(function (c) {
-      var sp = document.createElement('span'); sp.className = 'capsub';
-      var nm = document.createElement('span'); nm.className = 'cr-name'; nm.textContent = c.name;
-      sp.appendChild(nm); sp.appendChild(document.createTextNode(' ' + c.role)); creditsEl.appendChild(sp);
-    });
+    fillCredits(creditsEl, g.credits);
     paintTitle(); retrigger(swapEl, 'swap');
   }
 }
@@ -53,6 +58,7 @@ async function zoomed(i) {
   if (!reduce) await wipe('in', 550);
   if (run !== loadRun || !alive) return;
   tLoadTitle.dataset.text = g.title; renderT(tLoadTitle);
+  fillCredits(tLoadCredits, g.credits);
   tLoadNote.textContent = g.link ? 'Taking you to the itch.io page' : 'No itch.io link yet for this one';
   tLoadLink.hidden = !g.link; if (g.link) tLoadLink.href = g.link;
   tload.hidden = false; root.classList.toggle('tloading', true); clearWipe(); wipeBlock(false);
@@ -89,7 +95,7 @@ export const TableView = {
     jam = JAMS[route.jam]; games = jam.games; alive = true; offs = [];
     el.hidden = false; loadEl.hidden = false; tload.hidden = true; root.classList.toggle('tloading', false); menu(false);
     $('#navBack').setAttribute('href', route.token === 'games' ? '#home' : '#events');
-    S = { hovered: -1, center: Math.min(3, games.length - 1), opened: -1, shown: -1 };
+    S = { hovered: -1, last: -1, center: Math.min(3, games.length - 1), opened: -1, shown: -1 };
     countEl.textContent = cap(jam.title + ' / ' + games.length + ' games');
     render();
     var c = document.createElement('canvas'); c.className = 'table__canvas'; stage.insertBefore(c, stage.firstChild); cv = c;
@@ -107,17 +113,23 @@ export const TableView = {
       var T = v[0], A = v[1];
       if (!alive || cv !== c) return;
       engine = new T.GameTable(c, games, A, {
-        onHover: function (i) { S.hovered = i; c.style.cursor = i >= 0 ? 'pointer' : 'grab'; render(); },
-        onCenter: function (i) { S.center = i; render(); },
+        onHover: function (i) {
+          S.hovered = i; c.style.cursor = i >= 0 ? 'pointer' : 'grab'; clearTimeout(hoverT);
+          /* the text follows a cartridge once the pointer settles on it, so brushing past others on the way to the credits does not swap it */
+          if (i >= 0) hoverT = setTimeout(function () { if (S.hovered === i) { S.last = i; render(); } }, 250);
+        },
+        onCenter: function (i) { S.center = i; S.last = -1; render(); },
         onOpen: function (i) { S.opened = i; S.hovered = -1; render(); },
-        onZoomed: zoomed
+        onZoomed: zoomed,
+        /* the share of the screen the info text takes, so the camera keeps cartridges below it */
+        band: function () { return Math.min(.45, (info.getBoundingClientRect().bottom + 16) / Math.max(1, c.clientHeight)); }
       });
       loadEl.hidden = true;
       try { stage.focus({ preventScroll: true }); } catch (er) {}
     });
   },
   unmount: function () {
-    alive = false; clearTimeout(navT); offs.forEach(function (f) { f(); }); offs = [];
+    alive = false; clearTimeout(navT); clearTimeout(hoverT); offs.forEach(function (f) { f(); }); offs = [];
     if (engine) { engine.dispose(); engine = null; }
     if (cv) { cv.remove(); cv = null; }
     el.hidden = true; tload.hidden = true; root.classList.toggle('tloading', false);

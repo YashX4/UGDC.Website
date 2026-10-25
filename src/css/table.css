@@ -12,14 +12,25 @@
 .table__titlerow{display:flex;align-items:center;justify-content:center;gap:.16em;width:100%;max-width:1100px}
 .table__titlerow canvas{display:block;color:var(--content);max-width:100%}
 .table__heart{flex:0 0 auto;transform:rotate(-14deg);margin-left:10px}
+/* no boxes on the scene: a soft halo of the page ground keeps the text readable over the cartridges */
+.table__info .cap,.table__desc,.table__credits{text-shadow:0 0 2px var(--bg),0 0 6px var(--bg),0 0 12px var(--bg),0 0 18px var(--bg)}
+/* keeps the blue fringe (.fringe in base.css), then the halo */
+.table__titlerow canvas{filter:drop-shadow(1.2px 0 0 rgba(0,47,167,.28)) drop-shadow(-1.2px 0 0 rgba(0,47,167,.2)) drop-shadow(0 0 3px var(--bg)) drop-shadow(0 0 10px var(--bg))}
 .table__desc{margin:0;max-width:60ch;font-family:var(--display);font-size:20px;line-height:1.2;color:var(--content)}
 .table__credits{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 16px}
 .cr-name{color:var(--content)}
+/* credit names with a social link: the only clickable bit of the info layer */
+.table__credits a.cr-name{pointer-events:auto;text-decoration:underline;text-decoration-color:var(--brand);text-underline-offset:3px}
+.table__credits a.cr-name:hover,.table__credits a.cr-name:focus-visible{color:var(--brand)}
 /* cartridge loading screen: the blue loader, with the game name and two buttons */
 .tload{z-index:50}
 .tload__stack{display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center;padding:0 24px}
 .tload .loader__mark .t{color:#fff}
 .tload__note{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#ffffffcc}
+.tload__credits{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 16px;max-width:640px}
+.tload__credits .capsub,.tload__credits .cr-name{color:#fff}
+.tload__credits a.cr-name{text-decoration:underline;text-underline-offset:3px}
+.tload__credits a.cr-name:hover,.tload__credits a.cr-name:focus-visible{text-decoration-thickness:2px}
 .tload__btns{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
 .tload .btn{color:#fff;border-color:#fff}
 .tload .btn:hover,.tload .btn:focus-visible{background:#fff;color:var(--brand);border-color:#fff}

@@ -8,7 +8,9 @@
     "build": "vite build",
     "preview": "vite preview --port 4173 --strictPort",
     "test:visual": "playwright test",
-    "add-deck": "node scripts/add-deck.mjs"
+    "add-deck": "node scripts/add-deck.mjs",
+    "icons": "node scripts/make-icons.mjs",
+    "og": "node scripts/make-og.mjs"
   },
   "dependencies": {
     "three": "0.149.0"

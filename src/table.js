@@ -88,6 +88,9 @@ function GameTable(canvas, games, A, cb) {
   floor.rotation.x = -Math.PI / 2; floor.position.y = -.5 - .5489 * S; floor.receiveShadow = true; scene.add(floor);
 
   var pick = [], carts = [];
+  /* the cartridge's real height, for framing the camera */
+  A.cartGeo.computeBoundingBox();
+  var cartTop = A.cartGeo.boundingBox.max.y, cartH = cartTop - A.cartGeo.boundingBox.min.y;
   var spineGeo = new T.PlaneGeometry(.118, .64);
   games.forEach(function (g, i) {
     var color = g.color || PLASTIC[i % PLASTIC.length];
@@ -102,7 +105,9 @@ function GameTable(canvas, games, A, cb) {
     carts.push({ holder: holder, mesh: mesh, tex: tex, stex: stex, rot: BASE, z: 0, y: 0, dx: 0 });
   });
 
-  var offset = Math.min(3, n - 1), target = offset, hovered = -1, lastCenter = -1;
+  /* target and offset are the camera position along the row, kept inside [lo, hi] so the row never slides past its
+     first or last cartridge. sel is the cartridge the info text shows when nothing is hovered. */
+  var offset = Math.min(3, n - 1), target = offset, hovered = -1, lastCenter = -1, sel = offset, follow = true, lo = 0, hi = n - 1, fits = false, sized = false;
   var opened = -1, openAt = 0, fired = false, closing = 0;
   var ray = new T.Raycaster(), ndc = new T.Vector2(), drag = null, raf = 0;
   var baseCam = new T.Vector3(), baseLook = new T.Vector3(0, .11, 0), camLook = new T.Vector3(0, .11, 0), baseFov = 30;
@@ -112,11 +117,32 @@ function GameTable(canvas, games, A, cb) {
     var w = canvas.clientWidth, h = canvas.clientHeight; if (!w || !h) return;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
-    var dist = 2.9 * Math.max(1, 1.9 / camera.aspect);
+    var tanH = Math.tan(baseFov * Math.PI / 360), dist = 2.9 * Math.max(1, 1.9 / camera.aspect);
+    var band = cb.band ? cb.band() : .3;
+    /* few games: come in closer so the row fills the screen instead of sitting on empty table.
+       Portrait screens show about three and a half cartridges and slide, instead of shrinking the whole row. */
+    dist = Math.min(dist, (rowLen + 1.1) / (2 * tanH * camera.aspect));
+    if (camera.aspect < 1) dist = Math.min(dist, (3.5 * SP + .5) / (2 * tanH * camera.aspect));
+    /* never so close that a lifted cartridge cannot fit between the text band and the bottom bar */
+    dist = Math.max(dist, cartH * 1.3 / (Math.max(.3, 1 - band - .12) * 2 * tanH));
     baseCam.set(0, .24, dist);
-    if (opened < 0) { camera.position.copy(baseCam); camera.lookAt(baseLook); }
+    /* how far the row may slide, in cartridges: half the visible width less a margin past the end cartridges */
+    var half = dist * tanH * camera.aspect / SP - 1.4;
+    fits = half * 2 >= n - 1;
+    lo = fits ? (n - 1) / 2 : half; hi = fits ? (n - 1) / 2 : n - 1 - half;
+    target = clampC(target); if (!sized) { offset = target; sized = true; }
+    /* aim higher until a lifted cartridge clears the text band at the top (band comes from the view) */
     camera.updateProjectionMatrix();
+    baseLook.y = .11;
+    for (var k = 0; k < 40; k++) {
+      camera.position.copy(baseCam); camera.lookAt(baseLook); camera.updateMatrixWorld();
+      var top = tmp.set(0, cartTop + .04, .5).project(camera).y, bottom = tmp.set(0, cartTop - cartH, 0).project(camera).y;
+      if ((1 - top) / 2 >= band || (1 - bottom) / 2 > .93) break;
+      baseLook.y += .008;
+    }
+    if (opened < 0) { camera.position.copy(baseCam); camLook.copy(baseLook); camera.lookAt(baseLook); }
   }
+  function clampC(v) { return Math.max(lo, Math.min(hi, v)); }
   function unitsPerPx() { var vh = 2 * baseCam.z * Math.tan(baseFov * Math.PI / 360); return vh / canvas.clientHeight; }
   function hit(e) {
     var r = canvas.getBoundingClientRect();
@@ -144,17 +170,17 @@ function GameTable(canvas, games, A, cb) {
     if (drag && (e.buttons || drag.type === 'touch')) {
       var dx = e.clientX - drag.x;
       if (Math.abs(dx) > 6) { drag.moved = true; setHover(-1); try { canvas.setPointerCapture(drag.id); } catch (er) {} }
-      if (drag.moved) target = clamp(drag.t - dx * unitsPerPx() / SP);
+      if (drag.moved) { target = clampC(drag.t - dx * unitsPerPx() / SP); follow = true; }
     }
   };
   this.up = function (e) {
     if (opened >= 0) { drag = null; return; }
     if (drag && !drag.moved) { var i = hit(e); if (i >= 0) self.open(i); }
-    else if (drag) target = Math.round(target);
+    else if (drag) target = clampC(Math.round(target));
     drag = null;
     if ((e.pointerType || 'mouse') === 'touch') { ptr = null; setHover(-1); }
   };
-  this.leave = function () { if (!drag) { ptr = null; setHover(-1); if (edgeScrolling) { edgeScrolling = false; target = Math.round(target); } } };
+  this.leave = function () { if (!drag) { ptr = null; setHover(-1); if (edgeScrolling) { edgeScrolling = false; target = clampC(Math.round(target)); } } };
   var ro = new ResizeObserver(resize); ro.observe(canvas); resize();
 
   var reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -162,11 +188,11 @@ function GameTable(canvas, games, A, cb) {
   function frame(t) {
     var k = reduced ? 1 : .14;
     // edge hover scroll (mouse only, not while dragging or open)
-    if (ptr && ptr.type !== 'touch' && !drag && opened < 0) {
+    if (ptr && ptr.type !== 'touch' && !drag && opened < 0 && !fits) {
       var ex = ptr.x / ptr.w, sp = 0;
       if (ex < EDGE) sp = -(1 - ex / EDGE); else if (ex > 1 - EDGE) sp = (ex - (1 - EDGE)) / EDGE;
-      if (sp !== 0) { edgeScrolling = true; target = clamp(target + sp * Math.abs(sp) * .16); }
-      else if (edgeScrolling) { edgeScrolling = false; target = Math.round(target); }
+      if (sp !== 0) { edgeScrolling = true; follow = true; target = clampC(target + sp * Math.abs(sp) * .16); }
+      else if (edgeScrolling) { edgeScrolling = false; target = clampC(Math.round(target)); }
     }
     offset += (target - offset) * (reduced ? 1 : .12);
     // hover follows the cursor even while the row slides under it
@@ -208,23 +234,24 @@ function GameTable(canvas, games, A, cb) {
       camera.position.lerp(baseCam, .12); camLook.lerp(baseLook, .12); camera.lookAt(camLook);
       closing--;
     }
-    var center = Math.round(clamp(offset));
-    if (center !== lastCenter && opened < 0) { lastCenter = center; cb.onCenter(center); }
+    if (follow) sel = Math.round(clamp(offset));
+    if (sel !== lastCenter && opened < 0) { lastCenter = sel; cb.onCenter(sel); }
     if (dead) return; /* dispose() can be called from inside a callback */
     renderer.render(scene, camera);
     raf = requestAnimationFrame(frame);
   }
   raf = requestAnimationFrame(frame);
 
-  this.step = function (d) { if (opened < 0) target = clamp(Math.round(target) + d); };
+  /* keys walk every cartridge, the camera follows as far as the row allows */
+  this.step = function (d) { if (opened < 0) { follow = false; sel = clamp(sel + d); target = clampC(sel); } };
   this.isOpen = function () { return opened >= 0; };
   this.open = function (i) {
     if (opened >= 0) return;
-    setHover(-1); target = clamp(i); opened = i; openAt = performance.now(); fired = false;
+    setHover(-1); target = clampC(i); opened = i; openAt = performance.now(); fired = false;
     carts[i].z = Math.max(carts[i].z, .5);
     cb.onOpen(i);
   };
-  this.openCenter = function () { self.open(Math.round(clamp(target))); };
+  this.openCenter = function () { self.open(sel); };
   this.close = function () { opened = -1; closing = 90; };
   this.dispose = function () {
     dead = true; cancelAnimationFrame(raf); ro.disconnect();

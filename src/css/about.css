@@ -29,12 +29,13 @@ html[data-view="about"] body,html[data-view="resources"] body{padding:0}
 
 /* 3. eboard: vertical scroll drives a row of big portraits */
 .board{position:relative;margin-top:-45svh;z-index:1}
-.board__head{padding:clamp(64px,10vh,120px) clamp(16px,4vw,48px) 0;display:flex;align-items:end;justify-content:space-between;gap:24px;flex-wrap:wrap}
-.board__title{font-size:clamp(44px,7vw,104px)}
+.board__head{padding:0 clamp(16px,4vw,48px);display:flex;align-items:end;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.board__title{font-size:clamp(40px,6vw,88px)}
 .board__pin{position:relative}
-.board__stick{position:sticky;top:0;height:100svh;overflow:hidden;display:flex;align-items:center}
+/* the title pins with the row; cards are sized from what is left under the nav so photo, name and links all fit */
+.board__stick{position:sticky;top:0;height:100svh;overflow:hidden;display:flex;flex-direction:column;justify-content:center;gap:clamp(14px,3vh,32px);padding:72px 0 20px;box-sizing:border-box;background:var(--bg);touch-action:pan-y}
 .board__track{display:flex;gap:clamp(20px,3vw,44px);padding-inline:clamp(16px,4vw,48px);will-change:transform}
-.member{flex:none;width:min(72vw,calc((100svh - 300px) * .8));display:flex;flex-direction:column;gap:12px}
+.member{flex:none;width:min(72vw,calc((100svh - 380px) * .8));display:flex;flex-direction:column;gap:12px}
 .member__photo{position:relative;aspect-ratio:4/5;border-radius:4px;overflow:hidden;background:var(--bg-subtle);border:1px dashed color-mix(in srgb,var(--brand) 45%,transparent)}
 .member__photo img,.member__photo canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .member__photo canvas{image-rendering:pixelated}
@@ -43,9 +44,14 @@ html[data-view="about"] body,html[data-view="resources"] body{padding:0}
 .view .member__role{color:var(--brand)}
 .member__name{font-size:clamp(28px,3vw,40px)}
 .member__desc{font-size:15px;line-height:1.35;margin:0;max-width:42ch}
+.member__link{justify-self:start;text-decoration:none}
+.member__link:hover,.member__link:focus-visible{color:var(--brand)}
 .foot{padding:48px clamp(16px,4vw,48px) 40px;border-top:1px solid var(--border);margin-top:8vh;display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-between;align-items:end}
 .foot a{color:inherit}
-.foot .links.small{margin:0}
+.foot .links.small{margin:0;padding:0;list-style:none}
+.foot__credit{margin:0}
+.foot__credit a{color:var(--content);text-decoration:none}
+.foot__credit a:hover,.foot__credit a:focus-visible{color:var(--brand)}
 .credits--foot{margin:0;max-width:60ch}
 
 /* RESOURCES: a plain list of slide decks */

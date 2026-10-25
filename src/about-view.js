@@ -6,7 +6,7 @@
    Everything starts on mount and stops on unmount, so nothing runs behind the other pages. */
 import { ABOUT_STREAM, BOARD, SLIDES } from './data.js';
 import { renderAll } from './pixel.js';
-import { $, $$, css, reduce, sleep } from './util.js';
+import { $, $$, css, ease, reduce, sleep } from './util.js';
 
 var LEVELS = [0, .35, .7, 1];
 var PERSON = [
@@ -18,6 +18,8 @@ var track = $('#boardTrack'), stream = $('#stream'), pinB = $('#boardPin'), aher
     pxCv = $('.ahero__px'), px = pxCv.getContext('2d'), heroImg = $('.ahero__img');
 var built = false, active = false, SIMG = [], pxCells = null, pxS = 0, pxW = 0, pxH = 0, heroReady = null, listRendered = false;
 var rnd = (function (s) { return function () { return (s = (s * 16807) % 2147483647) / 2147483647; }; })(7);
+/* members without a profile url yet get a LinkedIn people search for their name */
+function linkedinSearch(name) { return 'https://www.linkedin.com/search/results/people/?keywords=' + encodeURIComponent(name + ' UMass Amherst'); }
 function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
 function build() {
@@ -28,7 +30,8 @@ function build() {
     var num = String(i + 1).padStart(2, '0') + '/';
     el.innerHTML = '<div class="member__photo">' + (m.photo ? '<img src="' + m.photo + '" alt="' + m.name + '">' : '<canvas data-portrait aria-hidden="true"></canvas>') + '<span class="member__num">' + num + '</span></div>' +
       '<div class="member__meta"><span class="cap member__role">[' + m.role + ']</span><h3 class="sr">' + m.name + '</h3>' +
-      '<div class="member__name" aria-hidden="true"><span class="t" data-text="' + m.name + '"></span></div><p class="member__desc">' + m.desc + '</p></div>';
+      '<div class="member__name" aria-hidden="true"><span class="t" data-text="' + m.name + '"></span></div><p class="member__desc">' + m.desc + '</p>' +
+      '<a class="cap member__link" href="' + (m.linkedin || linkedinSearch(m.name)) + '" target="_blank" rel="noopener" aria-label="' + m.name + ' on LinkedIn">[ LinkedIn ]</a></div>';
     track.appendChild(el);
   });
   /* photo stream */
@@ -59,10 +62,69 @@ function setupPx() {
   var cols = Math.ceil(pxW / pxS), rows = Math.ceil(pxH / pxS); pxCells = [];
   for (var rr = 0; rr < rows; rr++) for (var c = 0; c < cols; c++) pxCells.push([c * pxS, rr * pxS, (rr / rows) * .25 + rnd() * .6]);
 }
+/* eboard geometry. The row moves one card at a time: for each step the row first holds (HOLD of the step), then eases
+   to the next card. D0 is a longer hold when the row first pins, so a fast flick lands on the first cards instead of the end.
+   E horizontal travel, step one card plus gap, S number of steps, L vertical scroll per step, D1 hold at the end. */
+var BG = null, HOLD = .4;
 function sizeBoard() {
   if (reduce) { track.style.flexWrap = 'wrap'; pinB.style.height = 'auto'; track.parentElement.style.position = 'relative'; track.parentElement.style.height = 'auto'; return; }
-  var extra = Math.max(0, track.scrollWidth - innerWidth);
-  pinB.style.height = (innerHeight + extra) + 'px';
+  var E = Math.max(0, track.scrollWidth - innerWidth), kids = track.children, vh = innerHeight;
+  var step = kids.length > 1 ? kids[1].offsetLeft - kids[0].offsetLeft : 1;
+  BG = { E: E, step: step, S: E > 0 ? Math.ceil(E / step - .02) : 0, D0: vh * .5, L: vh * .55, D1: vh * .3 };
+  pinB.style.height = (vh + BG.D0 + BG.S * BG.L + BG.D1) + 'px';
+}
+/* scroll inside the pin -> row offset */
+function boardX(v) {
+  if (!BG.S) return 0;
+  var u = clamp((v - BG.D0) / BG.L, 0, BG.S), k = Math.min(Math.floor(u), BG.S - 1), f = u - k;
+  return Math.min(BG.E, (k + (f < HOLD ? 0 : ease((f - HOLD) / (1 - HOLD)))) * BG.step);
+}
+/* card k -> the scroll position in the middle of its hold */
+function boardY(k) { return k < BG.S ? BG.D0 + (k + HOLD / 2) * BG.L : BG.D0 + BG.S * BG.L + BG.D1 / 2; }
+function boardPinned() { var r = pinB.getBoundingClientRect(); return BG && r.top <= 1 && r.bottom >= innerHeight - 1; }
+function boardGo(dir) {
+  var cur = boardX(-pinB.getBoundingClientRect().top) / BG.step;
+  var k = clamp(dir > 0 ? Math.floor(cur + .05) + 1 : Math.ceil(cur - .05) - 1, 0, BG.S);
+  scrollTo({ top: pinB.getBoundingClientRect().top + scrollY + boardY(k), behavior: 'smooth' });
+}
+/* sideways input moves the row too: it is turned into page scroll inside the pin, so both stay in sync */
+function boardScroll(d) {
+  var v = -pinB.getBoundingClientRect().top, nv = clamp(v + d, 0, pinB.offsetHeight - innerHeight);
+  if (nv === v) return false;
+  scrollBy(0, nv - v); return true;
+}
+function onBoardWheel(e) {
+  if (Math.abs(e.deltaX) <= Math.abs(e.deltaY) || !boardPinned()) return;
+  if (boardScroll(e.deltaX * BG.L / BG.step)) e.preventDefault();
+}
+/* the catch: a fast wheel flick that runs into the row from above stops on the first cards, and the rest of that flick's
+   momentum is swallowed (900 ms at most) so the next scroll starts fresh. Wheel only, touch momentum is left alone. */
+var lastV = -1e9, wheels = [], catchAt = 0, catchUntil = 0;
+/* how far the wheel asked to scroll down in the last 200 ms */
+function wheelRate(now) { while (wheels.length && wheels[0][0] < now - 200) wheels.shift(); return wheels.reduce(function (a, w) { return a + w[1]; }, 0); }
+function onCatchWheel(e) {
+  var now = performance.now(); wheels.push([now, e.deltaY]);
+  if (now < catchUntil && now - catchAt < 900 && e.deltaY > 0) { e.preventDefault(); catchUntil = now + 140; }
+}
+function boardCatch() {
+  var v = -pinB.getBoundingClientRect().top, y0 = boardY(0), now = performance.now();
+  if (lastV < y0 && v >= y0 && wheelRate(now) > innerHeight * .6) { scrollBy(0, y0 - v); v = y0; catchAt = now; catchUntil = now + 250; }
+  lastV = v;
+}
+var touch = null;
+function onBoardTouchStart(e) { var t = e.touches[0]; touch = { x: t.clientX, y: t.clientY, axis: '', dir: 0 }; }
+function onBoardTouchMove(e) {
+  if (!touch || !boardPinned()) return;
+  var t = e.touches[0], dx = t.clientX - touch.x, dy = t.clientY - touch.y;
+  if (!touch.axis && Math.hypot(dx, dy) > 8) touch.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+  if (touch.axis !== 'x') return;
+  boardScroll(-dx * BG.L / BG.step); touch.dir = dx < 0 ? 1 : -1; touch.x = t.clientX; touch.y = t.clientY;
+}
+/* a sideways swipe settles on a card */
+function onBoardTouchEnd() { if (touch && touch.axis === 'x' && touch.dir) boardGo(touch.dir); touch = null; }
+function onBoardKey(e) {
+  if ((e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') || e.metaKey || e.ctrlKey || e.altKey || !boardPinned()) return;
+  e.preventDefault(); boardGo(e.key === 'ArrowRight' ? 1 : -1);
 }
 
 function onScroll() {
@@ -91,8 +153,8 @@ function onScroll() {
     s.im.style.transform = 'translate(calc(-50% + ' + xo + 'px), calc(-50% + ' + y + 'px)) rotate(' + (s.r * grow) + 'deg) scale(' + sc + ')';
   });
   /* eboard row */
-  var br = pinB.getBoundingClientRect(), extra = pinB.offsetHeight - vh, b = extra > 0 ? clamp(-br.top / extra, 0, 1) : 0;
-  track.style.transform = 'translateX(' + (-b * Math.max(0, track.scrollWidth - innerWidth)) + 'px)';
+  if (BG) boardCatch();
+  if (BG) track.style.transform = 'translateX(' + (-boardX(-pinB.getBoundingClientRect().top)) + 'px)';
 }
 var raf = 0;
 function onScrollRaf() { if (!raf) raf = requestAnimationFrame(function () { raf = 0; onScroll(); }); }
@@ -102,6 +164,14 @@ export const AboutView = {
   mount: function () {
     build(); elA.hidden = false; scrollTo(0, 0); active = true;
     addEventListener('scroll', onScrollRaf, { passive: true }); addEventListener('resize', onResize);
+    if (!reduce) {
+      pinB.addEventListener('wheel', onBoardWheel, { passive: false });
+      pinB.addEventListener('touchstart', onBoardTouchStart, { passive: true });
+      pinB.addEventListener('touchmove', onBoardTouchMove, { passive: true });
+      pinB.addEventListener('touchend', onBoardTouchEnd);
+      document.addEventListener('keydown', onBoardKey);
+      addEventListener('wheel', onCatchWheel, { passive: false });
+    }
     return Promise.race([heroReady, sleep(4000)]).then(function () {
       renderAll(); paintPortraits(); setupPx(); sizeBoard(); onScroll();
       /* fonts or layout can settle a beat later */
@@ -111,6 +181,10 @@ export const AboutView = {
   unmount: function () {
     active = false; elA.hidden = true;
     removeEventListener('scroll', onScrollRaf); removeEventListener('resize', onResize);
+    pinB.removeEventListener('wheel', onBoardWheel); pinB.removeEventListener('touchstart', onBoardTouchStart);
+    pinB.removeEventListener('touchmove', onBoardTouchMove); pinB.removeEventListener('touchend', onBoardTouchEnd);
+    document.removeEventListener('keydown', onBoardKey); removeEventListener('wheel', onCatchWheel);
+    lastV = -1e9;
   }
 };
 
