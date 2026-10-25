@@ -38,12 +38,20 @@ export const clearWipe = function () { wx.clearRect(0, 0, wipeCv.width, wipeCv.h
 export const wipeBlock = function (on) { wipeCv.style.pointerEvents = on ? 'auto' : 'none'; };
 
 /* The loader screen is reusable: the site intro, the poster to table hop and the cartridge loading screen are all variations of it.
-   loaderShow(title)  solid Klein screen with the emblem and a title
+   loaderShow(title, sponsors)  solid Klein screen with the emblem, a title and an optional sponsor line
    loaderRun(ready, min)  counts up until `ready` resolves and `min` ms have passed
    loaderReveal()  mark fades, the blue turns into pixel blocks that dissolve */
 var titleEl = $('.loader__mark .t');
-export const loaderShow = function (title) {
-  loader.classList.remove('is-out'); loader.hidden = false;
+/* the small sponsor line at the foot of a loader: [ Sponsored by ] A / B / C */
+export const showSponsors = function (el, list) {
+  el.hidden = !(list && list.length); el.textContent = '';
+  if (el.hidden) return;
+  var lead = document.createElement('span'); lead.textContent = '[ Sponsored by ] ';
+  el.append(lead, list.join(' / '));
+};
+var sponsorsEl = $('#loaderSponsors');
+export const loaderShow = function (title, sponsors) {
+  loader.classList.remove('is-out'); loader.hidden = false; showSponsors(sponsorsEl, sponsors);
   titleEl.dataset.text = title || 'UMass Game Dev'; renderT(titleEl); paintEmblems();
   pctEl.textContent = 'Loading 0%'; barEl.style.width = '0%';
 };

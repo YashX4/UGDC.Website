@@ -67,7 +67,7 @@ export async function openJam(key) {
   if (reduce) { await swap(route); push(route); busy = false; return; }
   wipeBlock(true);
   await wipe('in', 600);
-  loaderShow(JAMS[key].title); clearWipe();
+  loaderShow(JAMS[key].title, JAMS[key].sponsors); clearWipe();
   var ready = swap(route);
   await loaderRun(ready, 1100);
   push(route);

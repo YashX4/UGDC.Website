@@ -43,7 +43,9 @@ function placeholders(n) {
   return list;
 }
 export const JAMS = {
-  'fall-2026': { title: 'Fall Game Jam 2026', games: placeholders(6) },
+  'fall-2026': { title: 'Fall Game Jam 2026', games: placeholders(6),
+    /* shown at the foot of this jam's loading screens; any jam can have a list */
+    sponsors: ['Adobe', "Antonio's", 'Pioneer Valley Game Dev', 'Bueno y Sano'] },
   'spring-2026': { title: 'Spring Game Jam 2026', games: [
     { title: 'Drill Game', team: 'Antidissmist', desc: 'Drill around, smack some things and maybe fight some robots.', credits: solo('Antidissmist'), link: 'https://antidissmist.itch.io/drill-game?secret=WVlC1mgEU6aHDWjPDkT65HizuE', cover: 'assets/covers/drill-game.jpg', color: '' },
     { title: 'Purrfectly Unbuilt', team: 'delayyy', desc: 'Play as a cat and destroy the house items before your owner returns.', credits: solo('delayyy'), link: 'https://delayyy.itch.io/purrfectly-unbuilt', cover: 'assets/covers/purrfectly-unbuilt.jpg', color: '' },

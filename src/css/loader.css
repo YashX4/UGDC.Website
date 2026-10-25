@@ -5,8 +5,12 @@
 .loader__mark canvas{height:110px;width:auto;image-rendering:pixelated;display:block}
 .loader__mark .t{font-size:40px;color:#fff}
 .loader__foot{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;gap:10px;transition:opacity .2s steps(2)}
+.loader__sponsors{margin:0 0 14px;padding:0 16px;max-width:100%;font-family:var(--mono);font-size:10px;line-height:1.6;letter-spacing:.08em;text-transform:uppercase;text-align:center;color:#fff}
+.loader__sponsors span{color:#ffffffaa}
 .loader__pct{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#ffffffcc}
 .loader__bar{height:3px;width:100%;background:#ffffff26}
 .loader__bar i{display:block;height:100%;width:0;background:#fff}
 @media (max-width:560px){.loader__mark canvas{height:73px}.loader__mark .t{font-size:24px}.loader__mark{gap:10px}}
 .wipe{position:fixed;inset:0;z-index:61;pointer-events:none;width:100%;height:100%;display:block}
+/* the jam loader covers everything: hide the nav (the table corner plus sits above it otherwise) */
+.loader:not([hidden]) ~ .nav{visibility:hidden}

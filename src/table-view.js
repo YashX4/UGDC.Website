@@ -6,14 +6,14 @@
 import { JAMS, OPEN_ITCH_IN_NEW_TAB } from './data.js';
 import { nav } from './nav.js';
 import { inkOf, rasterInto, renderT } from './pixel.js';
-import { clearWipe, wipe, wipeBlock } from './transition.js';
+import { clearWipe, showSponsors, wipe, wipeBlock } from './transition.js';
 import { $, cap, reduce, retrigger, root } from './util.js';
 
 var el = $('#view-table'), stage = $('#tableStage'), loadEl = $('#tableLoading');
 var info = $('#tInfo'), swapEl = $('#tSwap'), titleCv = $('#tTitle'), h1 = $('#tH1'), countEl = $('#tCount'),
     descEl = $('#tDesc'), creditsEl = $('#tCredits'),
     progText = $('#tProgText'), progBar = $('#tProgBar'),
-    tload = $('#tLoad'), tLoadTitle = $('#tLoadTitle'), tPct = $('#tPct'), tBar = $('#tBar'), tLoadNote = $('#tLoadNote'), tLoadLink = $('#tLoadLink'), tLoadCredits = $('#tLoadCredits'), tLoadBack = $('#tLoadBack');
+    tload = $('#tLoad'), tLoadTitle = $('#tLoadTitle'), tPct = $('#tPct'), tBar = $('#tBar'), tLoadNote = $('#tLoadNote'), tLoadLink = $('#tLoadLink'), tLoadCredits = $('#tLoadCredits'), tSponsors = $('#tSponsors'), tLoadBack = $('#tLoadBack');
 var jam = null, games = [], engine = null, cv = null, alive = false, offs = [], navT = 0, hoverT = 0;
 /* last: the last hovered cartridge. The info stays on it after the pointer leaves, so its credit links can be clicked. */
 var S = { hovered: -1, last: -1, center: 3, opened: -1, shown: -1 };
@@ -51,7 +51,14 @@ function render() {
 function menu(o) { if (!o) nav.close(); }
 
 /* ---- opening a game: pixel blocks cover, then the blue loader screen with the game name ---- */
-var loadRun = 0;
+var loadRun = 0, popped = false;
+/* opening the itch.io page happens during the click itself (pointerup or Enter): browsers block tabs opened later from a
+   timer. The zoom and the loader then play here, and the button on the loader is the fallback if the tab was blocked. */
+function openItch(i) {
+  var g = games[i]; popped = false;
+  if (!g || !g.link || !OPEN_ITCH_IN_NEW_TAB) return;
+  try { var w = window.open(g.link, '_blank'); if (w) { w.opener = null; popped = true; } } catch (er) {}
+}
 async function zoomed(i) {
   var g = games[i], run = ++loadRun;
   wipeBlock(true);
@@ -59,7 +66,8 @@ async function zoomed(i) {
   if (run !== loadRun || !alive) return;
   tLoadTitle.dataset.text = g.title; renderT(tLoadTitle);
   fillCredits(tLoadCredits, g.credits);
-  tLoadNote.textContent = g.link ? 'Taking you to the itch.io page' : 'No itch.io link yet for this one';
+  showSponsors(tSponsors, jam.sponsors);
+  tLoadNote.textContent = !g.link ? 'No itch.io link yet for this one' : (popped ? 'Opened in a new tab' : (OPEN_ITCH_IN_NEW_TAB ? 'Your browser kept the tab closed. Open it here.' : 'Taking you to the itch.io page'));
   tLoadLink.hidden = !g.link; if (g.link) tLoadLink.href = g.link;
   tload.hidden = false; root.classList.toggle('tloading', true); clearWipe(); wipeBlock(false);
   var t0 = performance.now(), dur = 1700;
@@ -69,10 +77,9 @@ async function zoomed(i) {
     tPct.textContent = 'Loading ' + Math.round(p * 100) + '%'; tBar.style.width = (p * 100) + '%';
     if (p < 1) requestAnimationFrame(tick);
   })(t0);
-  if (!g.link) return;
-  navT = setTimeout(function () {
-    try { if (OPEN_ITCH_IN_NEW_TAB) window.open(g.link, '_blank', 'noopener'); else window.location.assign(g.link); } catch (er) {}
-  }, dur);
+  /* same tab mode: leave for itch.io once the loader fills */
+  if (!g.link || OPEN_ITCH_IN_NEW_TAB) return;
+  navT = setTimeout(function () { try { window.location.assign(g.link); } catch (er) {} }, dur);
 }
 async function closeGame() {
   clearTimeout(navT); loadRun++;
@@ -119,7 +126,7 @@ export const TableView = {
           if (i >= 0) hoverT = setTimeout(function () { if (S.hovered === i) { S.last = i; render(); } }, 250);
         },
         onCenter: function (i) { S.center = i; S.last = -1; render(); },
-        onOpen: function (i) { S.opened = i; S.hovered = -1; render(); },
+        onOpen: function (i) { openItch(i); S.opened = i; S.hovered = -1; render(); },
         onZoomed: zoomed,
         /* the share of the screen the info text takes, so the camera keeps cartridges below it */
         band: function () { return Math.min(.45, (info.getBoundingClientRect().bottom + 16) / Math.max(1, c.clientHeight)); }
