@@ -1,0 +1,38 @@
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--content);font-family:var(--display);overflow-x:hidden;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+html[data-view="wall"],html[data-view="table"]{overflow:hidden}
+html[data-view="wall"] body,html[data-view="table"] body{overflow:hidden;height:100%}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+:focus-visible{outline:2px solid var(--brand);outline-offset:3px}
+.stage,.stage:focus,.stage:focus-visible{outline:none}
+a{color:var(--content)}a:hover{color:var(--brand)}
+
+/* CRT layer over everything */
+.crt{position:fixed;inset:0;pointer-events:none;z-index:70;
+  background:repeating-linear-gradient(to bottom,var(--scan) 0 1px,transparent 1px 3px),radial-gradient(ellipse 75% 70% at 50% 48%,transparent 40%,var(--vignette) 100%);
+  animation:flick 5s steps(1) infinite}
+@keyframes flick{0%,100%{opacity:1}47%{opacity:.92}48%{opacity:1}83%{opacity:.96}}
+
+/* type helpers */
+.cap{font-family:var(--mono);text-transform:uppercase;font-size:clamp(9px,.95vw,12px);letter-spacing:0;color:var(--content)}
+.capsub{font-family:var(--mono);text-transform:uppercase;font-size:11px;letter-spacing:.04em;color:var(--content-subtle)}
+.fringe{filter:drop-shadow(1.2px 0 0 rgba(0,47,167,.28)) drop-shadow(-1.2px 0 0 rgba(0,47,167,.2))}
+.glow{filter:drop-shadow(0 0 .07em var(--brand))}
+.limeglow{filter:drop-shadow(0 0 .05em var(--lime)) drop-shadow(0 0 3px var(--lime))}
+.t{display:block;filter:drop-shadow(1.2px 0 0 rgba(255,0,90,.28)) drop-shadow(-1.2px 0 0 rgba(0,170,255,.3))}
+.t canvas{display:block}
+
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:10px 16px;font-family:var(--mono);text-transform:uppercase;font-size:12px;letter-spacing:.04em;text-decoration:none;cursor:pointer;border:1px solid var(--content);border-radius:3px;background:transparent;color:var(--content)}
+.btn:hover{border-color:var(--brand);color:var(--brand)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.primary:hover{color:#fff;box-shadow:0 0 12px var(--brand)}
+
+/* stepped animations, like old hardware */
+.swap{animation:swap .3s steps(4)}
+@keyframes swap{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:none}}
+.bar{animation:fill 1.6s steps(16) forwards}
+@keyframes fill{from{width:0}to{width:100%}}
+.cell{opacity:0;animation:cellin .5s steps(1) forwards}@keyframes cellin{to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.crt,.swap{animation:none}*{transition-duration:.01ms!important}.bar{animation-duration:.01s}}

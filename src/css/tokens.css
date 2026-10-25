@@ -1,0 +1,23 @@
+/* ============================================================
+   UMGD COLOR + TYPE TOKENS (final). Light only, no dark mode.
+   Klein blue frames things, orange pops once per screen, text is always ink, no other hues.
+   ============================================================ */
+@font-face{font-family:"Goethe";src:url(/assets/fonts/Goethe.ttf) format("truetype");font-weight:400 900;font-display:block}
+/* Goethe by Kreative Korporation, freeware (Kreative Software Relay Fonts Free Use License). Silkscreen comes from Google Fonts, self host it for production. */
+:root{
+  color-scheme:light;
+  --bg:#ebe8e1;            /* page ground */
+  --bg-subtle:#f6f4ef;     /* paper: raised surfaces, posters, cartridge labels */
+  --content:#0a0f26;       /* ink: all text */
+  --content-subtle:#6b6f80;
+  --border:#0a0f2626;
+  --brand:#002fa7;         /* Klein blue, brand color 1 */
+  --lime:#ff4f00;          /* orange accent, brand color 2 (name kept from the proof of concept) */
+  --lime-fill:#ffd9c7;
+  --pill:#ffffff66;
+  --vignette:rgba(30,30,40,.35);
+  --scan:rgba(0,10,40,.07);
+  --icon-fill:#ffffff;
+  --display:"Goethe","Times New Roman",Times,serif;
+  --mono:"Silkscreen","Courier New",ui-monospace,monospace;
+}

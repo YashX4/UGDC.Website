@@ -1,0 +1,22 @@
+/* One scale unit --u: the hero is designed on a 1100 by 700 box and scaled to the window, so nothing is cut off or cramped. */
+.hero{--u:min(calc(100vw / 1100),calc((100svh - 88px) / 700));min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding-block:calc(env(safe-area-inset-top,0px) + 64px) 24px;gap:calc(var(--u) * 12);text-align:center;position:relative}
+.emblem{height:calc(var(--u) * 185 * var(--frac, 1));width:auto;max-width:100%;image-rendering:pixelated;display:block;flex:none}
+.line--brand{font-size:2.3em;margin-block:0 .1em}
+.title{display:flex;flex-direction:column;align-items:center;gap:0;font-size:max(18px,calc(var(--u) * 48))}
+.line{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;column-gap:.16em;row-gap:0;margin-block:-.06em}
+.ico{display:inline-flex;align-items:center;justify-content:center;flex:none}
+.ico svg{display:block;height:100%;width:auto;shape-rendering:crispEdges}
+.ico--pad{height:.6em;filter:drop-shadow(0 0 .045em var(--brand))}
+.ico--heart{height:.7em;transform:rotate(-14deg);filter:drop-shadow(0 0 .05em var(--lime))}
+.ico--photo{height:.72em;aspect-ratio:1.85;border-radius:.08em;overflow:hidden;background:var(--bg-subtle)}
+.ico--photo img{width:100%;height:100%;object-fit:cover;display:block;filter:contrast(1.08)}
+/* image trail */
+.trail{position:fixed;inset:0;pointer-events:none;z-index:30;overflow:hidden}
+.trail img{position:absolute;left:0;top:0;width:150px;height:auto;border-radius:3px;opacity:0;will-change:transform;box-shadow:0 8px 28px rgba(0,0,0,.22);user-select:none}
+@media (max-aspect-ratio:9/10),(max-width:560px){
+  .hero{--u:min(calc(100vw / 390),calc((100svh - 88px) / 560))}
+  .title{font-size:max(18px,calc(var(--u) * 21.5))}
+  .line--brand{font-size:2.7em}
+  .emblem{height:calc(var(--u) * 150 * var(--frac, 1))}
+}

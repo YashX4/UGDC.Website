@@ -1,0 +1,12 @@
+/* loader, pixel wipe canvas, poster to table fade */
+.loader{position:fixed;inset:0;z-index:60;background:var(--brand);color:#fff;display:grid;place-items:center}
+.loader__mark{display:flex;align-items:center;gap:14px;transition:opacity .25s steps(3)}
+.loader.is-out .loader__mark,.loader.is-out .loader__foot{opacity:0}
+.loader__mark canvas{height:110px;width:auto;image-rendering:pixelated;display:block}
+.loader__mark .t{font-size:40px;color:#fff}
+.loader__foot{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;gap:10px;transition:opacity .2s steps(2)}
+.loader__pct{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#ffffffcc}
+.loader__bar{height:3px;width:100%;background:#ffffff26}
+.loader__bar i{display:block;height:100%;width:0;background:#fff}
+@media (max-width:560px){.loader__mark canvas{height:73px}.loader__mark .t{font-size:24px}.loader__mark{gap:10px}}
+.wipe{position:fixed;inset:0;z-index:61;pointer-events:none;width:100%;height:100%;display:block}

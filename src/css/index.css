@@ -1,0 +1,9 @@
+/* every stylesheet, in the cascade order the prototype linked them */
+@import "./tokens.css";
+@import "./base.css";
+@import "./nav.css";
+@import "./loader.css";
+@import "./home.css";
+@import "./wall.css";
+@import "./table.css";
+@import "./about.css";

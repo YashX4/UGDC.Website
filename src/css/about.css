@@ -1,0 +1,86 @@
+/* ABOUT and RESOURCES views. Plain page scroll, sticky scenes driven by scroll position (about-view.js). */
+/* ABOUT + RESOURCES  */
+html[data-view="about"] body,html[data-view="resources"] body{padding:0}
+.view .tag{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.04em;text-transform:uppercase;padding:3px 6px 2px;line-height:1.2;border-radius:2px}
+.view .tag--blue{background:var(--brand);color:#fff}
+.view .tag--pop{background:var(--lime);color:var(--content)}
+.view .cap{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.02em;color:var(--content);margin:0}
+
+/* 1. hero photo that breaks into pixels as you scroll */
+.ahero{height:190svh;position:relative}
+.ahero__stick{position:sticky;top:0;height:100svh;padding:12px}
+.ahero__frame{position:relative;height:100%;border-radius:6px;overflow:hidden;background:var(--content)}
+.ahero__img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.68) contrast(1.06) saturate(.95)}
+.ahero__body{position:absolute;inset:auto 0 0 0;padding:clamp(18px,3vw,36px);display:grid;grid-template-columns:1fr minmax(0,330px);align-items:end;gap:24px;color:#fff}
+.ahero__tags{display:flex;gap:0;margin-bottom:10px}
+.ahero__title{font-size:clamp(52px,10.5vw,150px);color:#fff}
+.ahero__title .t{filter:drop-shadow(1.5px 0 0 rgba(255,0,90,.35)) drop-shadow(-1.5px 0 0 rgba(0,170,255,.35))}
+.ahero__title .t+.t{margin-top:-.12em}
+.ahero__copy{font-size:15px;line-height:1.35;margin:0;color:#fff;max-width:36ch;justify-self:end}
+.ahero__px{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:block}
+
+/* 2. photo stream: photos pop in at the centre, stack, then fly off the top */
+.stream{height:420svh;position:relative;margin-top:-100svh}
+.stream__stick{position:sticky;top:0;height:100svh;overflow:hidden}
+.stream__img{position:absolute;left:50%;top:50%;width:auto;height:auto;max-width:min(34vw,430px);max-height:54svh;border-radius:2px;
+  transform:translate(-50%,-50%) scale(.4);opacity:0;will-change:transform;box-shadow:0 10px 30px rgba(10,15,38,.18)}
+.stream__cap{position:absolute;left:0;right:0;bottom:22px;display:flex;justify-content:space-between;padding-inline:clamp(16px,3vw,36px);color:var(--content-subtle)}
+.view .stream__cap .cap{color:var(--content-subtle);font-size:9px}
+
+/* 3. eboard: vertical scroll drives a row of big portraits */
+.board{position:relative;margin-top:-45svh;z-index:1}
+.board__head{padding:clamp(64px,10vh,120px) clamp(16px,4vw,48px) 0;display:flex;align-items:end;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.board__title{font-size:clamp(44px,7vw,104px)}
+.board__pin{position:relative}
+.board__stick{position:sticky;top:0;height:100svh;overflow:hidden;display:flex;align-items:center}
+.board__track{display:flex;gap:clamp(20px,3vw,44px);padding-inline:clamp(16px,4vw,48px);will-change:transform}
+.member{flex:none;width:min(72vw,calc((100svh - 300px) * .8));display:flex;flex-direction:column;gap:12px}
+.member__photo{position:relative;aspect-ratio:4/5;border-radius:4px;overflow:hidden;background:var(--bg-subtle);border:1px dashed color-mix(in srgb,var(--brand) 45%,transparent)}
+.member__photo img,.member__photo canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.member__photo canvas{image-rendering:pixelated}
+.member__num{position:absolute;left:10px;top:10px;font-family:var(--mono);font-size:10px;color:var(--brand)}
+.member__meta{display:grid;gap:6px}
+.view .member__role{color:var(--brand)}
+.member__name{font-size:clamp(28px,3vw,40px)}
+.member__desc{font-size:15px;line-height:1.35;margin:0;max-width:42ch}
+.foot{padding:48px clamp(16px,4vw,48px) 40px;border-top:1px solid var(--border);margin-top:8vh;display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-between;align-items:end}
+.foot a{color:inherit}
+.foot .links.small{margin:0}
+.credits--foot{margin:0;max-width:60ch}
+
+/* RESOURCES: a plain list of slide decks */
+.res{max-width:980px;margin:0 auto;padding:clamp(110px,16vh,150px) clamp(16px,4vw,32px) 80px;min-height:100svh}
+.res__title{font-size:clamp(52px,9vw,112px)}
+.res__head{display:grid;gap:10px;margin-bottom:clamp(28px,5vh,48px)}
+.res__list{list-style:none;margin:0;padding:0;border-top:1px solid var(--border)}
+.res__row a{display:grid;grid-template-columns:44px 1fr auto auto;align-items:center;gap:16px;padding:16px 4px;border-bottom:1px solid var(--border);color:var(--content);text-decoration:none}
+.res__row a:hover,.res__row a:focus-visible{background:var(--bg-subtle);color:var(--brand)}
+.res__num{font-family:var(--mono);font-size:10px;color:var(--content-subtle)}
+.res__name{font-size:clamp(20px,2.4vw,28px);line-height:1.1}
+.res__date{font-family:var(--mono);font-size:10px;color:var(--content-subtle);text-transform:uppercase}
+.res__pdf{font-family:var(--mono);font-size:10px;text-transform:uppercase;border:1px solid var(--brand);color:var(--brand);padding:4px 6px 3px;border-radius:2px}
+.res__row a:hover .res__pdf{background:var(--brand);color:#fff}
+.res__row a.is-soon{pointer-events:none;color:var(--content-subtle)}
+.res__row a.is-soon .res__pdf{border-color:var(--border);color:var(--content-subtle)}
+.res__list{position:relative}
+.res__cursor{position:absolute;left:-24px;top:0;width:10px;height:14px;margin-top:-7px;pointer-events:none}
+.res__cursor svg{display:block;width:100%;height:100%}
+.res__peek{position:fixed;left:0;top:0;z-index:30;width:min(320px,30vw);aspect-ratio:16/9;background:var(--bg-subtle);border:1px solid var(--brand);border-radius:2px;pointer-events:none}
+.res__peek img,.res__peek canvas{position:absolute;inset:4px;width:calc(100% - 8px);height:calc(100% - 8px);object-fit:cover;display:block}
+
+@media (max-width:760px){
+  .ahero__body{grid-template-columns:1fr}
+  .ahero__copy{justify-self:start}
+  .ahero__title{font-size:14vw}
+  .stream__img{max-width:min(64vw,360px)}
+  .res__row a{grid-template-columns:30px 1fr auto;gap:10px}
+  .res__date{grid-column:2;grid-row:2;margin-top:-8px}
+  .res__pdf{grid-column:3;grid-row:1/3}
+  .res__cursor{left:-13px;width:7px;height:10px;margin-top:-5px}
+}
+@media (prefers-reduced-motion:reduce){
+  .ahero{height:auto}.ahero__stick{position:relative}
+  .stream{height:auto;margin-top:0}.board{margin-top:0}.stream__stick{position:relative;height:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;padding:24px}
+  .stream__img{position:static;transform:none!important;opacity:1!important;width:100%;max-width:none;max-height:none}
+  .stream__cap{display:none}
+}
