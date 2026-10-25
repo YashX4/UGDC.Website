@@ -13,6 +13,7 @@ import { clearWipe, intro, loaderReveal, loaderRun, loaderShow, wipe, wipeBlock 
 import { renderAll } from './pixel.js';
 import { $$, fonts, reduce, root, sleep } from './util.js';
 import { WallView } from './wall-view.js';
+import { inject } from '@vercel/analytics';
 
 var views = { home: HomeView, about: AboutView, resources: ResourcesView, wall: WallView, table: TableView };
 var cur = null, curRoute = null, busy = false;
@@ -85,6 +86,9 @@ $$('a[data-transition]').forEach(function (a) {
 function onNav() { var r = parse(location.hash); if (!curRoute || r.token !== curRoute.token) go(location.hash, { noPush: true }); }
 addEventListener('popstate', onNav); addEventListener('hashchange', onNav);
 addEventListener('pageshow', function (e) { if (e.persisted) { clearWipe(); wipeBlock(false); busy = false; } });
+
+/* Vercel Web Analytics: cookieless visitor and page view counts. It only reports once Analytics is enabled on the Vercel project. */
+inject();
 
 /* boot: mount the first view behind the loader, keep the loader up until it is ready, then reveal */
 (async function boot() {
