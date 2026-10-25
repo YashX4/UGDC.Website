@@ -96,7 +96,7 @@ inject();
   var first = swap(route);
   /* views rasterize their headlines on mount, which can beat the Goethe load; draw them again once it lands */
   fonts().then(renderAll);
-  await intro(first);
+  await intro(first, route.jam && JAMS[route.jam].sponsors);
   await first;
   root.dataset.ready = 'true';
 })();

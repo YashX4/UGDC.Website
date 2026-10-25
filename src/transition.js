@@ -77,9 +77,10 @@ export const loaderReveal = async function () {
   await wipe('out', 900); clearWipe(); wipeBlock(false);
 };
 /* site intro */
-export const intro = async function (ready) {
+/* sponsors: shown when the site opens straight onto a jam that has them */
+export const intro = async function (ready, sponsors) {
   if (reduce) { loader.hidden = true; return; }
-  loaderShow('UMass Game Dev');
+  loaderShow('UMass Game Dev', sponsors);
   await loaderRun(ready, 1100);
   await loaderReveal();
 };

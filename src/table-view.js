@@ -51,9 +51,11 @@ function render() {
 function menu(o) { if (!o) nav.close(); }
 
 /* ---- opening a game: pixel blocks cover, then the blue loader screen with the game name ---- */
-var loadRun = 0, popped = false;
-/* opening the itch.io page happens during the click itself (pointerup or Enter): browsers block tabs opened later from a
-   timer. The zoom and the loader then play here, and the button on the loader is the fallback if the tab was blocked. */
+var loadRun = 0, popped = false, pending = -1, pendingAt = 0;
+/* opening the itch.io page happens inside the click (or the Enter key) itself: browsers, Safari most of all, block tabs
+   opened from anything later. The engine reports the open on pointerup, the canvas click right after it opens the tab.
+   The zoom and the loader then play here, and the button on the loader is the fallback if the tab was blocked anyway. */
+function openPending() { if (pending >= 0 && performance.now() - pendingAt < 1000) openItch(pending); pending = -1; }
 function openItch(i) {
   var g = games[i]; popped = false;
   if (!g || !g.link || !OPEN_ITCH_IN_NEW_TAB) return;
@@ -94,7 +96,7 @@ function onKey(e) {
   if (!engine) return;
   if (e.key === 'ArrowLeft') { e.preventDefault(); engine.step(-1); }
   else if (e.key === 'ArrowRight') { e.preventDefault(); engine.step(1); }
-  else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); engine.openCenter(); }
+  else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); engine.openCenter(); openPending(); }
 }
 
 export const TableView = {
@@ -109,6 +111,7 @@ export const TableView = {
     listen(c, 'pointerdown', function (e) { engine && engine.down(e); });
     listen(c, 'pointermove', function (e) { engine && engine.move(e); });
     listen(c, 'pointerup', function (e) { engine && engine.up(e); });
+    listen(c, 'click', openPending);
     listen(c, 'pointerleave', function (e) { engine && engine.leave(e); });
     listen(c, 'pointercancel', function (e) { engine && engine.leave(e); });
     listen(stage, 'keydown', onKey);
@@ -126,7 +129,7 @@ export const TableView = {
           if (i >= 0) hoverT = setTimeout(function () { if (S.hovered === i) { S.last = i; render(); } }, 250);
         },
         onCenter: function (i) { S.center = i; S.last = -1; render(); },
-        onOpen: function (i) { openItch(i); S.opened = i; S.hovered = -1; render(); },
+        onOpen: function (i) { popped = false; pending = i; pendingAt = performance.now(); S.opened = i; S.hovered = -1; render(); },
         onZoomed: zoomed,
         /* the share of the screen the info text takes, so the camera keeps cartridges below it */
         band: function () { return Math.min(.45, (info.getBoundingClientRect().bottom + 16) / Math.max(1, c.clientHeight)); }
