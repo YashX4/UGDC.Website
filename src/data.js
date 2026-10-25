@@ -84,14 +84,11 @@ export { SLIDES };
 /* ---------- POSTERS: the wall, left to right ----------
    front: poster image. back: theme poster shown on the flip (empty = placeholder).
    jam: key into JAMS, or '' when that jam has no cartridge page yet (the poster is then not clickable).
-   blank: true draws a "next jam" placeholder instead of an image. */
+   blank: true draws a "next jam" placeholder instead of an image (none on the wall right now). */
 export const POSTERS = [
   { id: 'fall', title: 'Fall Game Jam 2026', date: 'October 23 to 25', theme: 'Theme: Pick Your Poison',
     front: 'assets/posters/fall.jpg', back: 'assets/posters/fall-theme.jpg', jam: 'fall-2026' },
   { id: 'spring', title: 'Spring Game Jam', date: 'April 17 to 24', theme: 'Theme: Inverted',
-    front: 'assets/posters/spring.jpg', back: 'assets/posters/spring-theme.jpg', jam: 'spring-2026' },
-  { id: 'next1', blank: true, title: 'Your Poster Here', date: 'Date to be announced', theme: '', front: '', back: '', jam: '' },
-  { id: 'next2', blank: true, title: 'Your Poster Here', date: 'Date to be announced', theme: '', front: '', back: '', jam: '' },
-  { id: 'next3', blank: true, title: 'Your Poster Here', date: 'Date to be announced', theme: '', front: '', back: '', jam: '' }
+    front: 'assets/posters/spring.jpg', back: 'assets/posters/spring-theme.jpg', jam: 'spring-2026' }
 ];
 export const WALL_START = 0; /* index of the poster centred when the wall opens */
