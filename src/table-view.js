@@ -53,15 +53,20 @@ function render() {
 function menu(o) { if (!o) nav.close(); }
 
 /* ---- opening a game: pixel blocks cover, then the blue loader screen with the game name ---- */
-var loadRun = 0, popped = false, pending = -1, pendingAt = 0;
-/* opening the itch.io page happens inside the click (or the Enter key) itself: browsers, Safari most of all, block tabs
-   opened from anything later. The engine reports the open on pointerup, the canvas click right after it opens the tab.
-   The zoom and the loader then play here, and the button on the loader is the fallback if the tab was blocked anyway. */
-function openPending() { if (pending >= 0 && performance.now() - pendingAt < 1000) openItch(pending); pending = -1; }
-function openItch(i) {
-  var g = games[i]; popped = false;
-  if (!g || !g.link || !OPEN_ITCH_IN_NEW_TAB) return;
-  try { var w = window.open(g.link, '_blank'); if (w) { w.opener = null; popped = true; } } catch (er) {}
+var loadRun = 0, openedAt = 0;
+/* the itch.io tab opens when the loader fills, after the whole zoom, wipe and loader sequence (about 4 seconds).
+   Browsers only allow a new tab for a short while after the click: Chrome, Edge and Firefox about 5 seconds, Safari about 1.
+   So the sequence is kept under 5 seconds, and when the browser says the click no longer counts, the loader offers the
+   button instead of opening a tab the browser would block. */
+var LOAD_MS = 1100, ACTIVATION_MS = 4800;
+function canOpenNow() {
+  var ua = navigator.userActivation;
+  if (ua && 'isActive' in ua) return ua.isActive;
+  return performance.now() - openedAt < ACTIVATION_MS;
+}
+function openItch(g) {
+  try { var w = window.open(g.link, '_blank'); if (w) { w.opener = null; return true; } } catch (er) {}
+  return false;
 }
 async function zoomed(i) {
   var g = games[i], run = ++loadRun;
@@ -71,19 +76,21 @@ async function zoomed(i) {
   tLoadTitle.dataset.text = g.title; renderT(tLoadTitle);
   fillCredits(tLoadCredits, g.credits);
   showSponsors(tSponsors, jam.sponsors);
-  tLoadNote.textContent = !g.link ? 'No itch.io link yet for this one' : (popped ? 'Opened in a new tab' : (OPEN_ITCH_IN_NEW_TAB ? 'Your browser kept the tab closed. Open it here.' : 'Taking you to the itch.io page'));
+  tLoadNote.textContent = g.link ? 'Taking you to the itch.io page' : 'No itch.io link yet for this one';
   tLoadLink.hidden = !g.link; if (g.link) tLoadLink.href = g.link;
   tload.hidden = false; root.classList.toggle('tloading', true); clearWipe(); wipeBlock(false);
-  var t0 = performance.now(), dur = 1700;
+  var t0 = performance.now();
   (function tick(now) {
     if (run !== loadRun || tload.hidden) return;
-    var p = Math.min(1, (now - t0) / dur);
+    var p = Math.min(1, (now - t0) / LOAD_MS);
     tPct.textContent = 'Loading ' + Math.round(p * 100) + '%'; tBar.style.width = (p * 100) + '%';
-    if (p < 1) requestAnimationFrame(tick);
+    if (p < 1) { requestAnimationFrame(tick); return; }
+    if (!g.link) return;
+    /* the loader is full: go */
+    if (!OPEN_ITCH_IN_NEW_TAB) { try { window.location.assign(g.link); } catch (er) {} return; }
+    if (canOpenNow() && openItch(g)) tLoadNote.textContent = 'Opened in a new tab';
+    else { tLoadNote.textContent = 'Ready. Open it on itch.io'; try { tLoadLink.focus({ preventScroll: true }); } catch (er) {} }
   })(t0);
-  /* same tab mode: leave for itch.io once the loader fills */
-  if (!g.link || OPEN_ITCH_IN_NEW_TAB) return;
-  navT = setTimeout(function () { try { window.location.assign(g.link); } catch (er) {} }, dur);
 }
 async function closeGame() {
   clearTimeout(navT); loadRun++;
@@ -98,7 +105,7 @@ function onKey(e) {
   if (!engine) return;
   if (e.key === 'ArrowLeft') { e.preventDefault(); engine.step(-1); }
   else if (e.key === 'ArrowRight') { e.preventDefault(); engine.step(1); }
-  else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); engine.openCenter(); openPending(); }
+  else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); engine.openCenter(); }
 }
 
 export const TableView = {
@@ -114,7 +121,6 @@ export const TableView = {
     listen(c, 'pointerdown', function (e) { engine && engine.down(e); });
     listen(c, 'pointermove', function (e) { engine && engine.move(e); });
     listen(c, 'pointerup', function (e) { engine && engine.up(e); });
-    listen(c, 'click', openPending);
     listen(c, 'pointerleave', function (e) { engine && engine.leave(e); });
     listen(c, 'pointercancel', function (e) { engine && engine.leave(e); });
     listen(stage, 'keydown', onKey);
@@ -132,7 +138,7 @@ export const TableView = {
           if (i >= 0) hoverT = setTimeout(function () { if (S.hovered === i) { S.last = i; render(); } }, 250);
         },
         onCenter: function (i) { S.center = i; S.last = -1; render(); },
-        onOpen: function (i) { popped = false; pending = i; pendingAt = performance.now(); S.opened = i; S.hovered = -1; render(); },
+        onOpen: function (i) { openedAt = performance.now(); S.opened = i; S.hovered = -1; render(); },
         onZoomed: zoomed,
         /* the share of the screen the info text takes, so the camera keeps cartridges below it */
         band: function () { return Math.min(.45, (info.getBoundingClientRect().bottom + 16) / Math.max(1, c.clientHeight)); }
