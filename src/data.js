@@ -44,7 +44,41 @@ function placeholders(n) {
   return list;
 }
 export const JAMS = {
-  'fall-2026': { title: 'Fall Game Jam 2026', games: placeholders(6),
+  'fall-2026': { title: 'Fall Game Jam 2026', games: [
+    { title: "The Witch's Tarot", team: 'Shuchi', desc: "A pixel art deduction puzzle. Play Witch Kitty, read the cards and pick your poison to win an old witch's tarot deck.",
+      credits: [{ name: 'Shuchi Mishra', role: 'Design, writing, code, art', social: 'https://shuchi123.itch.io' }],
+      link: 'https://shuchi123.itch.io/witches-tarot', cover: 'assets/covers/fall-witches-tarot.jpg', color: '' },
+    { title: 'Toxic Relationships', team: 'Mark Brothers', desc: 'A tabletop card game. Poison everyone else at the party to be the last spy standing.',
+      credits: [{ name: 'Ian Mark', role: 'Design, art' }, { name: 'Tristan Mark', role: 'Design, art' }],
+      link: 'https://mister-coolest.itch.io/toxic-relationships', cover: '', color: '' },
+    { title: 'Last One Standing', team: 'Jason', desc: 'A horror TTRPG. Survivor meets Cthulhu.',
+      credits: [{ name: 'Jason Mark', role: 'Everything' }],
+      link: 'https://bobhope1999.itch.io/last-standing', cover: 'assets/covers/fall-last-one-standing.jpg', color: '' },
+    { title: 'Calamitous Cat', team: 'Quinn Bracken', desc: "Play as a cat knocking bottles of poison off the shelves and wrecking someone's room!",
+      credits: [{ name: 'Quinn Bracken', role: 'Programming, art, design' }],
+      link: 'https://qbrack.itch.io/calamitous-cat', cover: 'assets/covers/fall-calamitous-cat.jpg', color: '' },
+    { title: 'Dungeon of Verdicts', team: 'Dungeon', desc: 'You are the king of a dungeon. Every choice improves it... or destroys it.',
+      credits: [{ name: 'Jason Wang', role: 'Game design, text and balance', social: 'https://muchenjy.itch.io/' }, { name: 'Zhi Yuan Pan', role: 'Co game designer' }, { name: 'Naing Min Khant', role: 'Programmer' }, { name: 'Andrew Alekseyev', role: 'Programmer' }],
+      link: 'https://andrew-alekseyev-games.itch.io/dungeon-of-verdicts', cover: 'assets/covers/fall-dungeon-of-verdict.jpg', color: '' },
+    { title: 'Poisons, Please!', team: 'Rocazulu', desc: "You're the poison chef for a bunch of rude and impatient assassins. Good luck.",
+      credits: [{ name: 'Calvin Ellsworth', role: 'Lead programmer', social: 'https://itch.io/profile/theesteemed' }, { name: 'Rohan Sharma', role: 'Artist', social: 'https://rohbot.itch.io/' }, { name: 'Lucas Sardone', role: 'Music and sound', social: 'https://soundcloud.com/tastheartast' }, { name: 'Zubin Gupta', role: 'Programmer' }],
+      link: 'https://theesteemed.itch.io/poisons-please', cover: 'assets/covers/fall-poisons-please.jpg', color: '' },
+    { title: 'Take your meds.', team: 'Jared', desc: 'An arcade puzzle game where you clear dots from the screen by taking your meds.',
+      credits: [{ name: 'Jared Cole', role: 'Art, code, sound' }],
+      link: 'https://jc-cole.itch.io/take-your-meds', cover: 'assets/covers/fall-take-your-meds.jpg', color: '' },
+    { title: 'Poisonous Odds', team: 'SHAL', desc: 'A game of skill and chance against DrSatan. Take sips of the poison to scout and survive the odds.',
+      credits: [{ name: 'Harris Kyaw', role: 'Programmer' }, { name: 'Samarth Rao', role: 'Programmer' }, { name: 'Ashley Lau', role: 'Artist' }, { name: 'Luke Autio', role: 'Artist' }],
+      link: 'https://kyawva.itch.io/poisonous-odds', cover: 'assets/covers/fall-poisonous-odds.jpg', color: '' },
+    { title: 'Witch Hunt', team: 'Blake Harper and Eldar Yaharou', desc: 'The last witch left alive. Blend in, deceive the townsfolk and harvest ingredients for unique spells.',
+      credits: [{ name: 'Blake Harper', role: 'Programmer', social: 'https://www.instagram.com/bharper714/' }, { name: 'Eldar Yaharou', role: 'Artist, sound' }],
+      link: 'https://blakrr.itch.io/witch-hunt', cover: 'assets/covers/fall-witch-hunt.jpg', color: '' },
+    { title: 'YAGOL', team: 'Duy Nguyen', desc: 'Kill a patient you hate with pathogens! Mix 3 chemicals, resist immune attacks and deliver death at all costs.',
+      credits: [{ name: 'Duy Nguyen', role: 'Everything', social: 'https://ribosome.itch.io/' }],
+      link: 'https://ribosome.itch.io/yagol', cover: 'assets/covers/fall-yagol.jpg', color: '' },
+    { title: 'Alchemist of Aevyria', team: '7 Game Dev Gambit', desc: 'A puzzle game where you diagnose your clients and brew their elixirs. But not all potions exist to heal...',
+      credits: [{ name: 'Josephine Noble', role: 'Programming, sound, design' }, { name: 'Fro De Agostini-Frometa', role: 'Programming, design' }, { name: 'Sadie Janks', role: 'Artist, designer, writer' }],
+      link: 'https://7-game-dev-gambit.itch.io/alchemist-of-aevyria', cover: 'assets/covers/fall-alchemist.jpg', color: '' }
+  ],
     /* shown at the foot of this jam's loading screens; any jam can have a list.
        logo: a white on transparent PNG in assets/sponsors/ (empty shows the name as text) */
     sponsors: [
